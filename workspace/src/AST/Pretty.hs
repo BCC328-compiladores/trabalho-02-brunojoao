@@ -91,6 +91,7 @@ prettyVarInit (Just e) = space <> kw "=" <+> prettyExpr e
 
 prettyExpr :: Expr -> Doc ann
 prettyExpr (EVar lv)            = prettyLValue lv
+prettyExpr (EPostInc lv)        = prettyLValue lv <> kw "++"
 prettyExpr (ELit l)             = prettyLiteral l
 prettyExpr (ECall f args)       = pretty f <> parens (hsep (punctuate comma (map prettyExpr args)))
 prettyExpr (EAdd APlus a b)     = prettyExpr a <+> kw "+" <+> prettyExpr b
