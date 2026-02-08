@@ -1,0 +1,61 @@
+cabal-version:      3.0
+name:               compiler
+version:            0.1.0.0
+-- synopsis:
+-- description:
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             BrunoJoao
+-- maintainer:
+-- copyright:
+category:           Language
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+-- extra-source-files:
+
+common warnings
+    ghc-options: 
+        -Wall
+library
+    import:           warnings
+    exposed-modules:  
+        AST
+        Lexer
+        Token
+        Parser
+        TokenPretty
+        ASTPretty
+        CodePretty
+    build-depends:    
+        base ^>=4.18.3.0,
+        array,
+        containers,
+        prettyprinter
+    hs-source-dirs:   src
+    default-language: Haskell2010
+
+executable compiler
+    import:           warnings
+    main-is:          Main.hs
+    build-depends:
+        base ^>=4.18.3.0,
+        compiler,
+        containers,
+        prettyprinter,
+        HUnit
+    hs-source-dirs:   app
+    default-language: Haskell2010
+
+test-suite compiler-test
+    import:           warnings
+    default-language: Haskell2010
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          Main.hs
+    other-modules:
+        TestLexer
+        TestParser
+    build-depends:
+        base ^>=4.18.3.0,
+        compiler,
+        HUnit >=1.6 && <1.7

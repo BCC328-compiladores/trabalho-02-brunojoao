@@ -18,6 +18,9 @@ RUN apt-get update && apt-get install -y \
     python3 \
     cmake \
     xz-utils \
+    texlive-latex-base \
+    texlive-lang-portuguese \
+    texlive-latex-extra \
     && rm -rf /var/lib/apt/lists/*
 
 # Install RISC-V cross-compilation toolchain and QEMU emulator

@@ -1,0 +1,67 @@
+
+-- TopDown Design - Iniciar nos blocos maiores
+-- Iniciar com os modulos maiores dos arquivos
+  -- declaracao de funcao
+  -- declaracao de struct
+
+  -- 1 - Declaracao De Variavel
+  -- 2 - Associar Valor De Variavel
+  -- 3 - Estruturas De Repeticao (While, For)
+  -- 4 - Retorno De Funcao
+  -- 5 - Chamada De Funcao
+  -- 6 - Estruturas De Condição (If, Else)
+
+  Program                 → DeclarationList
+  DeclarationList         → Declaration DeclarationList | Declaration - >  Declaration DeclarationList _>  StructDeclaration FunctionDeclaration
+  Declaration             → FunctionDeclaration | StructDeclaration 
+
+  FunctionDeclaration     → Forall "FUNC" "IDENTIFIER" "LPARENTHESIS" ParamList "RPARENTHESIS" TypeDeclaration FunctionBlock
+  Forall                  → "FORALL" GenericTypeList "DOT" | λ
+  GenericTypeList         → "IDENTIFIER" GenericTypeList | "IDENTIFIER" 
+  ParamList               → Params | λ
+  Params                  → Param  | Param "COMMA" Params
+  Param                   → "IDENTIFIER" TypeDeclaration
+  TypeDeclaration         → "TYPEDEF" Type | λ
+  Type                    → "TYPEINT" | "TYPESTRING" | "TYPEFLOAT" | "TYPEBOOL" | "TYPEVOID"
+
+  FunctionBlock           → "LBRACE" StatementList "RBRACE"
+  StatementList           → Statement StatementList | Statement | λ
+  Statement               → VariableDeclaration | AssignmentStatement | LoopStatement | ReturnStatement | FunctionCallStatement | ConditionalStatement
+
+  -- ---------------------------------------------
+
+  VariableDeclaration     → "LET" "IDENTIFIER" TypeDeclaration "SEMICOLON"
+  AssignmentStatement     → "IDENTIFIER" "ASSIGN" ExpressionList "SEMICOLON"
+  ExpressionList          → Expression ExpressionList | Expression 
+  Expression              → LogicalExpression
+  LogicalExpression       → EqualityExpression 
+                          | LogicalExpression "AND" EqualityExpression 
+                          | LogicalExpression "OR" EqualityExpression
+  EqualityExpression      → RelationalExpression 
+                          | EqualityExpression "EQUAL" RelationalExpression 
+                          | EqualityExpression "NOTEQUAL" RelationalExpression
+  RelationalExpression    → AdditiveExpression
+                          | RelationalExpression "LESS" AdditiveExpression
+                          | RelationalExpression "GREATER" AdditiveExpression
+                          | RelationalExpression "LESSEQUAL" AdditiveExpression
+                          | RelationalExpression "GREATEREQUAL" AdditiveExpression
+  AdditiveExpression      → MultiplicativeExpression
+                          | AdditiveExpression "PLUS" MultiplicativeExpression
+                          | AdditiveExpression "MINUS" MultiplicativeExpression
+  MultiplicativeExpression → PrimaryExpression
+                          | MultiplicativeExpression "MULTIPLY" PrimaryExpression
+                          | MultiplicativeExpression "DIVIDE" PrimaryExpression
+  PrimaryExpression       → TypeLiteral
+                          | "IDENTIFIER"
+                          | FunctionCall
+                          | "LPARENTHESIS" Expression "RPARENTHESIS"
+  TypeLiteral             → "VALUEINT" | "VALUEFLOAT" | "VALUESTRING" | "VALUEBOOL"
+
+------------------------------------------------
+  FunctionCallStatement   → FunctionCall "SEMICOLON"
+  FunctionCall            → "IDENTIFIER" "LPARENTHESIS" Arguments "RPARENTHESIS"
+  Arguments               → Expression | Expression "COMMA" Arguments | λ
+  StructDeclaration       → "STRUCT" "IDENTIFIER" StructBlock
+  StructBlock             → "LBRACE" StructLines "RBRACE"
+  StructLines             → StructLine StructLines | StructLine
+  StructLine              → "IDENTIFIER" "TYPEDEF" Type "SEMICOLON"
