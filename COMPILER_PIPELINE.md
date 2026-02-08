@@ -140,3 +140,26 @@ Autorais:
 2. Otimizacao:
 - passes sobre AST/IR antes de codegen.
 
+## 11. Politica de validacao dos exemplos (`test/examples`)
+Para evitar interpretacao errada dos resultados, a avaliacao dos exemplos segue contrato por fase:
+
+1. `--lexer`: todos devem passar.
+2. `--parser`: todos devem passar.
+3. `--pretty`: todos devem passar.
+4. `--semantic`:
+- `ex08_first_class_function_limit.sl` deve falhar (limitacao conhecida).
+- demais devem passar.
+5. `--interp`:
+- `ex01`..`ex04`: devem passar.
+- `ex05` e `ex06`: nao sao obrigatorios (sem `main`).
+- `ex07`: deve falhar com erro de runtime (bounds).
+- `ex08`: nao deve chegar aqui, pois falha antes na semantica.
+
+## 12. Leitura correta de falhas
+
+- Falha esperada (teste valido): confirma regra de seguranca/limitacao planejada.
+- Falha nao esperada: indica regressao/bug.
+
+Exemplo concreto:
+- `Runtime error: Array index out of bounds` em `ex07` = comportamento correto.
+- `Runtime error: Invalid lvalue assignment` em `ex02` (estado antigo) = bug de interpretador, corrigido com inicializacao default por tipo em declaracao tipada sem init.

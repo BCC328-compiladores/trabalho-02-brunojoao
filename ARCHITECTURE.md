@@ -150,3 +150,25 @@ Fluxo:
 2. Sem backend de codigo.
 3. Sem pipeline de otimizacao dedicada.
 4. `Semantic.ScopeChecker`, `FunctionChecker`, `StructChecker` ainda sao fachadas para `analyzeProgram`.
+
+## 10. Contrato de execucao e falhas esperadas
+Para avaliacao do trabalho, o contrato correto nao e "todo exemplo precisa rodar no interpretador", e sim:
+
+1. Todo exemplo deve passar por `lexer`, `parser` e `pretty`.
+2. Em `semantic`, alguns arquivos devem falhar por design (teste de limitacao).
+3. Em `interp`, apenas exemplos com `main` e sem erro intencional devem executar ate o fim.
+
+### Classificacao dos exemplos de referencia
+
+| Arquivo | Tipo de caso | Comportamento correto |
+|---|---|---|
+| `ex01` a `ex04` | programa executavel | `semantic` OK + `interp` OK |
+| `ex05`, `ex06` | biblioteca/exemplo sem entrypoint | `semantic` OK + `interp` nao obrigatorio |
+| `ex07` | erro de runtime intencional | `semantic` OK + `interp` com falha esperada |
+| `ex08` | limitacao semantica intencional | `semantic` com falha esperada |
+
+### Risco operacional importante
+
+- Rodar `./compiler` pode usar binario antigo.
+- Para evitar falso negativo/positivo, preferir `cabal run compiler -- ...` ou reinstalar binario com:
+  - `cabal install --installdir=. --overwrite-policy=always -v0`

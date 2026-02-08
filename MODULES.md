@@ -221,6 +221,37 @@ Este documento detalha modulo por modulo como o compilador SL esta estruturado, 
 
 - **Papel:** corpus de programas de referencia para parser, semantica e interpretador.
 
+### `workspace/scripts/run_examples.sh`
+
+- **Papel:** validador de regressao dos exemplos `.sl` com criterio por fase.
+- **Fluxo por arquivo:** `lexer -> parser -> pretty -> semantic -> interp (quando aplicavel)`.
+- **Regra importante:** se o exemplo nao define `main`, o script valida semantica e ignora interpretacao.
+
+### Matriz oficial de comportamento dos exemplos
+
+| Exemplo | Objetivo | Semantic | Interp | Resultado esperado |
+|---|---|---|---|---|
+| `ex01_factorial.sl` | programa completo | OK | OK | sucesso total |
+| `ex02_records_arrays.sl` | arrays de struct + atribuicao indexada | OK | OK | sucesso total |
+| `ex03_reverse_array.sl` | manipulacao de arrays | OK | OK | sucesso total |
+| `ex04_bmi_booleans.sl` | aritmetica/booleanos/if | OK | OK | sucesso total |
+| `ex05_identity.sl` | funcao isolada sem entrypoint | OK | N/A | sem `main`, interp ignorado |
+| `ex06_map_function.sl` | generics/funcoes em tipo, sem entrypoint | OK | N/A | sem `main`, interp ignorado |
+| `ex07_array_oob_runtime.sl` | validar erro de bounds em runtime | OK | erro | erro de runtime esperado |
+| `ex08_first_class_function_limit.sl` | documentar limitacao atual | erro | N/A | erro semantico esperado |
+
+### Diagnostico de falhas que parecem erro, mas sao esperadas
+
+- `Unknown function: main` em `ex05` e `ex06` nao e bug: os arquivos sao exemplos de construcao de linguagem, nao programas executaveis completos.
+- `Array index out of bounds` em `ex07` nao e bug: e teste de seguranca de runtime.
+- `[SEM_VAR_UNDECL] Undeclared variable: inc` em `ex08` nao e bug acidental: e limitacao conhecida para funcao de primeira classe no call site.
+
+### Falha que era bug e foi corrigida
+
+- `ex02` falhava com `Invalid lvalue assignment` quando declarava array tipado sem init.
+- Causa: variavel sem inicializacao era criada como `VVoid`.
+- Correcao em `workspace/src/Interpreter/Eval.hs`: declaracao tipada sem init passa a usar valor default por tipo (incluindo `TArray` com tamanho).
+
 ## 11. Dependencias e Build
 
 ### `workspace/compiler.cabal`
@@ -263,4 +294,3 @@ Para adicionar uma feature de linguagem com seguranca:
 5. Estender runtime (`Interpreter/Value.hs` e `Interpreter/Eval.hs`).
 6. Expor na CLI se aplicavel (`app/Main.hs`).
 7. Criar testes em `TestParser`, `TestSemantic`, `TestInterpreter`.
-
