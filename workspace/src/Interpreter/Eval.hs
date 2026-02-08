@@ -49,9 +49,7 @@ loadFunc f = modify (\rt -> rt { rtFuncs = M.insert (funcName f) f (rtFuncs rt) 
 
 loadGlobal :: VarDecl -> Eval ()
 loadGlobal vd = do
-  v <- case varInit vd of
-    Nothing -> pure VVoid
-    Just e -> evalExpr e
+  v <- initialValueForDecl vd
   declareVar (varName vd) v
 
 evalBlock :: Block -> Eval (Maybe Value)
@@ -66,9 +64,7 @@ evalStmt :: Stmt -> Eval (Maybe Value)
 evalStmt stmt =
   case stmt of
     StmtVar vd -> do
-      v <- case varInit vd of
-        Nothing -> pure VVoid
-        Just e -> evalExpr e
+      v <- initialValueForDecl vd
       declareVar (varName vd) v
       pure Nothing
     StmtAssign lv e -> do
@@ -235,9 +231,19 @@ defaultFor t =
     TBool -> VBool False
     TString -> VString ""
     TVoid -> VVoid
-    TArray _ _ -> VArray []
+    TArray inner (Just n) -> VArray (replicate n (defaultFor inner))
+    TArray _ Nothing -> VArray []
     TNamed n -> VStruct n M.empty
     TFun _ _ -> VVoid
+
+initialValueForDecl :: VarDecl -> Eval Value
+initialValueForDecl vd =
+  case varInit vd of
+    Just e -> evalExpr e
+    Nothing ->
+      case varType vd of
+        Just t -> pure (defaultFor t)
+        Nothing -> pure VVoid
 
 litToValue :: Literal -> Value
 litToValue lit =
