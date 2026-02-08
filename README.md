@@ -61,13 +61,13 @@ cabal install --installdir=. --overwrite-policy=always -v0
 ./compiler --pretty test/examples/ex01_factorial.sl
 ```
 
-## Rodar Pretty
+## Rodar Semantica
 
 ```
 ./compiler --semantic test/examples/ex01_factorial.sl
 ```
 
-## Rodar Pretty
+## Rodar Interpretador
 
 ```
 ./compiler --interp test/examples/ex01_factorial.sl
