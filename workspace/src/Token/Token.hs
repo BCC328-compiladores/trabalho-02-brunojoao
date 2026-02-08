@@ -1,4 +1,4 @@
-module Token where
+module Token.Token where
 
 data Position = Position
   { posLine   :: !Int

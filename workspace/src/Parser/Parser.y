@@ -1,9 +1,9 @@
 {
-module Parser where
+module Parser.Parser where
 
 import Control.Exception (Exception, throw)
-import AST
-import Token
+import AST.AST
+import Token.Token
 }
 
 %name parseProgram
@@ -89,11 +89,15 @@ Decl
   | VarDecl                          { DeclVar $1 }
 
 FuncDecl
-  : ForallOpt Func Identifier LParenthesis ParamsOpt RParenthesis RetTypeOpt Block { FuncDecl $3 $5 $7 $8 }
+  : ForallOpt Func Identifier LParenthesis ParamsOpt RParenthesis RetTypeOpt Block { FuncDecl $1 $3 $5 $7 $8 }
 
 ForallOpt
-  : Forall Identifier Identifier Dot { () }
-  |                                  { () }
+  : Forall TypeParams Dot { $2 }
+  |                        { [] }
+
+TypeParams
+  : Identifier            { [$1] }
+  | Identifier TypeParams { $1 : $2 }
 
 RetTypeOpt
   : TypeDef Type                     { Just $2 }
@@ -150,7 +154,7 @@ Stmt
   | LValue Inc Semicolon                                                              { StmtInc $1 }
 
 ForUpdate
-  : LValue Inc   { EVar $1 }
+  : LValue Inc   { EPostInc $1 }
   | Expr         { $1 }
 
 ElseOpt
@@ -198,7 +202,7 @@ Term
 Primary
   : LParenthesis Expr RParenthesis               { EParen $2 }
   | Identifier LParenthesis ArgsOpt RParenthesis { ECall $1 $3 }
-  | LValue                                       { EVar $1 }
+  | LValue                                       { lvalueToExpr $1 }
   | Literal                                      { ELit $1 }
   | LBracket ArgsOpt RBracket                    { EArrayLit $2 }
   | Identifier LBrace ArgsOpt RBrace             { EStructInit $1 $3 }
@@ -274,4 +278,10 @@ tokenShort t                  = takeWhile (/= ' ') (show t)
 parseError :: [Token] -> a
 parseError toks =
   throw (ParserException toks)
+
+lvalueToExpr :: LValue -> Expr
+lvalueToExpr lv =
+  case lv of
+    LField base "size" -> EArraySize (EVar base)
+    _ -> EVar lv
 }

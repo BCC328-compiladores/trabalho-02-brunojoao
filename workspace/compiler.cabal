@@ -18,19 +18,36 @@ common warnings
         -Wall
 library
     import:           warnings
-    exposed-modules:  
-        AST
-        Lexer
-        Token
-        Parser
-        TokenPretty
-        ASTPretty
-        CodePretty
+    exposed-modules: 
+        Token.Token
+        Token.Pretty 
+        Lexer.Lexer
+        Parser.Parser
+        AST.AST
+        AST.Pretty
+        AST.PrettyTree
+        Errors.Diagnostic
+        Errors.Pretty
+        Environment.SymbolTable
+        Environment.TypeEnv
+        Environment.FuncEnv
+        Environment.StructEnv
+        TypeChecker.Types
+        TypeChecker.Unify
+        TypeChecker.Infer
+        Semantic.Analyzer
+        Semantic.ScopeChecker
+        Semantic.FunctionChecker
+        Semantic.StructChecker
+        Interpreter.Value
+        Interpreter.Builtins
+        Interpreter.Eval
     build-depends:    
         base ^>=4.18.3.0,
         array,
         containers,
-        prettyprinter
+        prettyprinter,
+        mtl
     hs-source-dirs:   src
     default-language: Haskell2010
 
@@ -55,6 +72,9 @@ test-suite compiler-test
     other-modules:
         TestLexer
         TestParser
+        TestSemantic
+        TestInterpreter
+        TestLimitations
     build-depends:
         base ^>=4.18.3.0,
         compiler,

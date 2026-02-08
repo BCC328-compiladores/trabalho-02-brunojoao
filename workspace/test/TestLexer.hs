@@ -1,8 +1,8 @@
 module TestLexer where
 
 import Test.HUnit
-import Lexer
-import Token
+import Lexer.Lexer
+import Token.Token
 import Control.Exception (SomeException, try, evaluate)
 
 tag :: Token -> String

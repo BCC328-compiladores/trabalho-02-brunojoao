@@ -4,9 +4,9 @@
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 {-# LANGUAGE CPP #-}
 {-# LINE 1 "Lexer.x" #-}
-module Lexer where
+module Lexer.Lexer where
 
-import Token
+import Token.Token
 import Control.Exception
 #include "ghcconfig.h"
 import qualified Data.Array

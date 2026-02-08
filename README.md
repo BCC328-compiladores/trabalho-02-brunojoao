@@ -61,6 +61,18 @@ cabal install --installdir=. --overwrite-policy=always -v0
 ./compiler --pretty test/examples/ex01_factorial.sl
 ```
 
+## Rodar Pretty
+
+```
+./compiler --semantic test/examples/ex01_factorial.sl
+```
+
+## Rodar Pretty
+
+```
+./compiler --interp test/examples/ex01_factorial.sl
+```
+
 ## Rodar testes
 
 Compila e executa todos os testes configurados:

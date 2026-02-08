@@ -1,8 +1,8 @@
 {
 
-module Lexer where
+module Lexer.Lexer where
 
-import Token
+import Token.Token
 import Control.Exception
 
 }

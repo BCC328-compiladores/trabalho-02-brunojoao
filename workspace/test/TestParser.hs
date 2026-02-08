@@ -1,8 +1,8 @@
 module TestParser where
 
 import Test.HUnit
-import Lexer
-import Parser
+import Lexer.Lexer
+import Parser.Parser
 import Control.Exception (SomeException, try, evaluate)
 
 parseOk :: String -> IO ()

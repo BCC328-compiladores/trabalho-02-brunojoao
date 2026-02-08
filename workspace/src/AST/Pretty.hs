@@ -1,6 +1,6 @@
-module CodePretty (prettyProgram) where
+module AST.Pretty (prettyProgram) where
 
-import AST
+import AST.AST
 import Prettyprinter hiding (semi, comma)
 
 kw :: String -> Doc ann

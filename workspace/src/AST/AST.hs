@@ -1,4 +1,4 @@
-module AST where
+module AST.AST where
 
 -- Programa
 data Program
@@ -14,10 +14,11 @@ data Decl
 
 -- Funções
 data FuncDecl = FuncDecl
-  { funcName   :: String
-  , funcParams :: [Param]
-  , funcRet    :: Maybe Type
-  , funcBody   :: Block
+  { funcTParams :: [String]
+  , funcName    :: String
+  , funcParams  :: [Param]
+  , funcRet     :: Maybe Type
+  , funcBody    :: Block
   }
   deriving (Show, Eq)
 
@@ -74,6 +75,7 @@ data Expr
   | ERel RelOp Expr Expr
   | EAdd AddOp Expr Expr
   | EMul MulOp Expr Expr
+  | EPostInc LValue
   | ECall String [Expr]
   | EVar LValue
   | ELit Literal

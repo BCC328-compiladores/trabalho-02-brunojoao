@@ -1,6 +1,6 @@
-module ASTPretty (programTree) where
+module AST.PrettyTree (programTree) where
 
-import AST
+import AST.AST
 import Data.Tree (Tree(..))
 
 programTree :: Program -> Tree String
@@ -12,9 +12,10 @@ declTree (DeclStruct s) = Node ("Struct " ++ structName s) (map fieldTree (struc
 declTree (DeclVar v)    = Node "GlobalVar" [varDeclTree v]
 
 funcTree :: FuncDecl -> Tree String
-funcTree (FuncDecl n ps r b) =
+funcTree (FuncDecl tps n ps r b) =
   Node ("Func " ++ n)
-    [ Node "Params" (map paramTree ps)
+    [ Node "TypeParams" (map (\tp -> Node tp []) tps)
+    , Node "Params" (map paramTree ps)
     , Node "ReturnType" (maybe [] (\t -> [typeTree t]) r)
     , Node "Body" (map stmtTree b)
     ]
@@ -57,6 +58,7 @@ assignTree (AssignExpr l e) = [Node "=" [lvalueTree l, exprTree e]]
 
 exprTree :: Expr -> Tree String
 exprTree (EVar lv)          = lvalueTree lv
+exprTree (EPostInc lv)      = Node "post++" [lvalueTree lv]
 exprTree (ELit l)           = Node (show l) []
 exprTree (EArraySize e)     = Node "size" [exprTree e]
 exprTree (ECall f as)       = Node ("Call " ++ f) [Node "Args" (map exprTree as)]

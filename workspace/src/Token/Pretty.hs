@@ -1,6 +1,6 @@
-module TokenPretty (printTokens) where
+module Token.Pretty (printTokens) where
 
-import Token
+import Token.Token
 
 printTokens :: [Token] -> IO ()
 printTokens = mapM_ printToken
