@@ -130,3 +130,6 @@ build/
 .bak
 .mtc
 build/
+
+#exec
+compiler
