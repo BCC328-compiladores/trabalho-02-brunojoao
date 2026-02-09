@@ -61,16 +61,61 @@ cabal install --installdir=. --overwrite-policy=always -v0
 ./compiler --pretty test/examples/ex01_factorial.sl
 ```
 
-## Rodar Semantica
+## Rodar Analisador Semantico (Stage 2)
 
 ```
 ./compiler --semantic test/examples/ex01_factorial.sl
 ```
 
-## Rodar Interpretador
+## Rodar Interpretador (Stage 2)
 
 ```
 ./compiler --interp test/examples/ex01_factorial.sl
+./compiler --interp test/examples/ex04_bmi_booleans.sl
+```
+
+## Limitacoes conhecidas (Stage 2)
+
+- Chamada de funcao por valor (first-class function em call site) ainda nao esta completa.
+- Bounds check de array gera erro de runtime por projeto (comportamento esperado e testado).
+
+## Demos de falha para apresentacao academica
+
+Falha semantica (funcao como valor no call site, limitacao atual):
+
+```
+./compiler --semantic test/examples/ex08_first_class_function_limit.sl
+```
+
+Falha de runtime (bounds check em array):
+
+```
+./compiler --interp test/examples/ex07_array_oob_runtime.sl
+```
+
+Para casos automatizados de falha esperada, veja:
+
+```
+test/TestLimitations.hs
+```
+
+## Demo em 2 minutos (roteiro pronto)
+
+1. Caso de sucesso (recursao):
+```bash
+./compiler --interp test/examples/ex01_factorial.sl
+```
+2. Caso de sucesso (tipos + if/else):
+```bash
+./compiler --interp test/examples/ex04_bmi_booleans.sl
+```
+3. Falha esperada de semantica:
+```bash
+./compiler --semantic test/examples/ex08_first_class_function_limit.sl
+```
+4. Falha esperada de runtime:
+```bash
+./compiler --interp test/examples/ex07_array_oob_runtime.sl
 ```
 
 ## Rodar testes
