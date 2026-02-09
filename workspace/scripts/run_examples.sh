@@ -87,6 +87,7 @@ for file in "$EXAMPLES_DIR"/*.sl; do
   if [[ "$expected" == "semantic_error" ]]; then
     if [[ "$semantic_ok" -eq 0 ]]; then
       echo "  [PASS] falha semantica esperada"
+      echo "  detalhe: $LAST_OUTPUT"
       ((passes++))
     else
       echo "  [FAIL] deveria falhar na semantica"
@@ -117,6 +118,7 @@ for file in "$EXAMPLES_DIR"/*.sl; do
   if [[ "$expected" == "runtime_error" ]]; then
     if [[ "$interp_ok" -eq 0 ]]; then
       echo "  [PASS] erro de runtime esperado"
+      echo "  detalhe: $LAST_OUTPUT"
       ((passes++))
     else
       echo "  [FAIL] deveria falhar em runtime"

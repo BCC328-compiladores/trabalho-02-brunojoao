@@ -10,6 +10,7 @@ import qualified Data.Map.Strict as M
 import Control.Monad (when)
 import Control.Monad.State.Strict
 import Control.Monad.Except
+import Data.List (intercalate)
 
 type Scope = M.Map String Value
 
@@ -18,6 +19,8 @@ data Runtime = Runtime
   , rtFuncs   :: M.Map String FuncDecl
   , rtStructs :: M.Map String StructDecl
   , rtOutput  :: [String]
+  , rtCallStack :: [String]
+  , rtCurrentStmt :: Maybe String
   }
 
 type Eval a = ExceptT String (State Runtime) a
@@ -29,7 +32,7 @@ evalProgram checked =
     (Right (), finalRt) -> Right (reverse (rtOutput finalRt))
   where
     prog = cpProgram checked
-    initial = Runtime [M.empty] M.empty M.empty []
+    initial = Runtime [M.empty] M.empty M.empty [] [] Nothing
     run = do
       loadProgram prog
       _ <- callFunction "main" []
@@ -61,7 +64,8 @@ evalBlock (s:ss) = do
     Nothing -> evalBlock ss
 
 evalStmt :: Stmt -> Eval (Maybe Value)
-evalStmt stmt =
+evalStmt stmt = do
+  setCurrentStmt (Just (stmtLabel stmt))
   case stmt of
     StmtVar vd -> do
       v <- initialValueForDecl vd
@@ -186,13 +190,13 @@ evalExpr ex =
       vals <- mapM evalExpr args
       let fields = structFields sd
       if length fields /= length vals
-        then throwError ("Struct initializer arity mismatch for " ++ sname)
+        then runtimeError ("Struct initializer arity mismatch for " ++ sname)
         else do
           let pairs = zipWith (\(StructField n _) v -> (n, v)) fields vals
           pure (VStruct sname (M.fromList pairs))
     ENew t e -> do
       n <- evalExpr e >>= expectInt
-      if n < 0 then throwError "Negative array size" else do
+      if n < 0 then runtimeError "Negative array size" else do
         let val = defaultFor t
         pure (VArray (replicate n val))
     EParen e -> evalExpr e
@@ -200,7 +204,7 @@ evalExpr ex =
       v <- evalExpr e
       case v of
         VArray xs -> pure (VInt (length xs))
-        _ -> throwError ".size requires array"
+        _ -> runtimeError ".size requires array"
 
 callBuiltin :: String -> [Expr] -> Eval Value
 callBuiltin "print" args = do
@@ -208,18 +212,21 @@ callBuiltin "print" args = do
   let out = unwords (map showValue vals)
   modify (\rt -> rt { rtOutput = out : rtOutput rt })
   pure VVoid
-callBuiltin n _ = throwError ("Unknown builtin: " ++ n)
+callBuiltin n _ = runtimeError ("Unknown builtin: " ++ n)
 
 callFunction :: String -> [Value] -> Eval Value
 callFunction name args = do
   fn <- getFunc name
   let params = funcParams fn
   when (length params /= length args) $
-    throwError ("Function arity mismatch: " ++ name)
-  withScope $ do
+    runtimeError ("Function arity mismatch: " ++ name)
+  pushCall name
+  result <- withScope $ do
     mapM_ bind (zip params args)
     r <- evalBlock (funcBody fn)
     pure (maybe VVoid id r)
+  popCall
+  pure result
   where
     bind (Param pname _, v) = declareVar pname v
 
@@ -264,13 +271,13 @@ evalRel op a b =
       case op of
         AEq -> pure (x == y)
         ANe -> pure (x /= y)
-        _ -> throwError "Invalid boolean relational operator"
+        _ -> runtimeError "Invalid boolean relational operator"
     (VString x, VString y) ->
       case op of
         AEq -> pure (x == y)
         ANe -> pure (x /= y)
-        _ -> throwError "Invalid string relational operator"
-    _ -> throwError "Invalid operands for relational expression"
+        _ -> runtimeError "Invalid string relational operator"
+    _ -> runtimeError "Invalid operands for relational expression"
   where
     cmp x y =
       case op of
@@ -294,7 +301,7 @@ evalAdd op a b =
       pure (VFloat (if op == APlus then x + fromIntegral y else x - fromIntegral y))
     (VString x, VString y) | op == APlus ->
       pure (VString (x ++ y))
-    _ -> throwError "Invalid operands for add/sub expression"
+    _ -> runtimeError "Invalid operands for add/sub expression"
 
 evalMul :: MulOp -> Value -> Value -> Eval Value
 evalMul op a b =
@@ -307,20 +314,20 @@ evalMul op a b =
       pure (VFloat (if op == AMul then fromIntegral x * y else fromIntegral x / y))
     (VFloat x, VInt y) ->
       pure (VFloat (if op == AMul then x * fromIntegral y else x / fromIntegral y))
-    _ -> throwError "Invalid operands for mul/div expression"
+    _ -> runtimeError "Invalid operands for mul/div expression"
 
 expectBool :: Value -> Eval Bool
 expectBool (VBool b) = pure b
-expectBool _ = throwError "Expected bool value"
+expectBool _ = runtimeError "Expected bool value"
 
 expectInt :: Value -> Eval Int
 expectInt (VInt i) = pure i
-expectInt _ = throwError "Expected int value"
+expectInt _ = runtimeError "Expected int value"
 
 incValue :: Value -> Eval Value
 incValue (VInt i) = pure (VInt (i + 1))
 incValue (VFloat f) = pure (VFloat (f + 1))
-incValue _ = throwError "Increment requires int or float"
+incValue _ = runtimeError "Increment requires int or float"
 
 withScope :: Eval a -> Eval a
 withScope action = do
@@ -333,16 +340,16 @@ declareVar :: String -> Value -> Eval ()
 declareVar name v = do
   rt <- get
   case rtScopes rt of
-    [] -> throwError "Invalid runtime scope stack"
+    [] -> runtimeError "Invalid runtime scope stack"
     (s:ss)
-      | M.member name s -> throwError ("Variable already declared in scope: " ++ name)
+      | M.member name s -> runtimeError ("Variable already declared in scope: " ++ name)
       | otherwise -> put rt { rtScopes = M.insert name v s : ss }
 
 lookupVar :: String -> Eval Value
 lookupVar name = do
   scopes <- gets rtScopes
   case findIn scopes of
-    Nothing -> throwError ("Undeclared variable: " ++ name)
+    Nothing -> runtimeError ("Undeclared variable: " ++ name)
     Just v -> pure v
   where
     findIn [] = Nothing
@@ -369,7 +376,7 @@ setVar name val = do
   put rt { rtScopes = scopes' }
   where
     go :: [Scope] -> Eval [Scope]
-    go [] = throwError ("Undeclared variable: " ++ name)
+    go [] = runtimeError ("Undeclared variable: " ++ name)
     go (s:ss)
       | M.member name s = pure (M.insert name val s : ss)
       | otherwise = do
@@ -424,33 +431,33 @@ getDeep v (a:as) =
       getDeep (VInt (length xs)) as
     (VStruct _ fields, RField f) ->
       case M.lookup f fields of
-        Nothing -> throwError ("Unknown struct field: " ++ f)
+        Nothing -> runtimeError ("Unknown struct field: " ++ f)
         Just x -> getDeep x as
     (VArray xs, RIndex i) ->
       if i < 0 || i >= length xs
-        then throwError "Array index out of bounds"
+        then runtimeError "Array index out of bounds"
         else getDeep (xs !! i) as
-    _ -> throwError "Invalid lvalue access"
+    _ -> runtimeError "Invalid lvalue access"
 
 setDeep :: Value -> [ResolvedAccess] -> Value -> Eval Value
 setDeep _ [] newVal = pure newVal
 setDeep v (a:as) newVal =
   case (v, a) of
     (VArray _, RField "size") ->
-      throwError "Array field size is read-only"
+      runtimeError "Array field size is read-only"
     (VStruct n fields, RField f) ->
       case M.lookup f fields of
-        Nothing -> throwError ("Unknown struct field: " ++ f)
+        Nothing -> runtimeError ("Unknown struct field: " ++ f)
         Just cur -> do
           upd <- setDeep cur as newVal
           pure (VStruct n (M.insert f upd fields))
     (VArray xs, RIndex i) ->
       if i < 0 || i >= length xs
-        then throwError "Array index out of bounds"
+        then runtimeError "Array index out of bounds"
         else do
           upd <- setDeep (xs !! i) as newVal
           pure (VArray (replaceAt i upd xs))
-    _ -> throwError "Invalid lvalue assignment"
+    _ -> runtimeError "Invalid lvalue assignment"
 
 replaceAt :: Int -> a -> [a] -> [a]
 replaceAt i val xs =
@@ -464,11 +471,45 @@ getFunc name = do
   fm <- gets rtFuncs
   case M.lookup name fm of
     Just f -> pure f
-    Nothing -> throwError ("Unknown function: " ++ name)
+    Nothing -> runtimeError ("Unknown function: " ++ name)
 
 getStruct :: String -> Eval StructDecl
 getStruct name = do
   sm <- gets rtStructs
   case M.lookup name sm of
     Just s -> pure s
-    Nothing -> throwError ("Unknown struct: " ++ name)
+    Nothing -> runtimeError ("Unknown struct: " ++ name)
+
+runtimeError :: String -> Eval a
+runtimeError msg = do
+  rt <- get
+  let callCtx =
+        case rtCallStack rt of
+          [] -> ""
+          xs -> " [callstack: " ++ intercalate " -> " (reverse xs) ++ "]"
+  let stmtCtx =
+        case rtCurrentStmt rt of
+          Nothing -> ""
+          Just s -> " [stmt: " ++ s ++ "]"
+  throwError (msg ++ callCtx ++ stmtCtx)
+
+pushCall :: String -> Eval ()
+pushCall fn = modify (\rt -> rt { rtCallStack = fn : rtCallStack rt })
+
+popCall :: Eval ()
+popCall = modify (\rt -> rt { rtCallStack = drop 1 (rtCallStack rt) })
+
+setCurrentStmt :: Maybe String -> Eval ()
+setCurrentStmt s = modify (\rt -> rt { rtCurrentStmt = s })
+
+stmtLabel :: Stmt -> String
+stmtLabel st =
+  case st of
+    StmtVar _ -> "var declaration"
+    StmtAssign _ _ -> "assignment"
+    StmtIf _ _ _ -> "if"
+    StmtWhile _ _ -> "while"
+    StmtFor _ _ _ _ -> "for"
+    StmtReturn _ -> "return"
+    StmtExpr _ -> "expression statement"
+    StmtInc _ -> "increment"
