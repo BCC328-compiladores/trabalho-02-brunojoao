@@ -46,7 +46,7 @@ Todos os itens do trabalho 1 foram feitos
 Não possuo mais os prompts mas no geral, foi pra entender como funciona um lexer e um parser, e prompts gerais sobre a sintaxe do happy e do alex.
 
 \subsection{Divisão de tarefas entre os membros}
-Esta seção não se aplica, pois o trabalho foi realizado individualmente.
+Esta seção não se aplica, pois o trabalho foi realizado individualmente. (Bruno)
 
 \clearpage
 
@@ -73,22 +73,215 @@ Esta seção não se aplica, pois o trabalho foi realizado individualmente.
 
 \subsection{Prompts utilizados, resultados e uso no trabalho}
 
-% Se não usou IA:
-% "Não foram utilizados prompts/IA nesta entrega."
+\begin{enumerate}[label=\textbf{\arabic*.}, leftmargin=*, itemsep=0.9em]
 
-\subsubsection*{Prompt 1}
-\begin{itemize}
-  \item \textbf{Prompt:} ...
-  \item \textbf{Resultado obtido:} ...
-  \item \textbf{Como foi utilizado:} ...
+% -------------------------
+\item
+\textbf{Prompt:} Como separar tipos sintáticos dos tipos semânticos para unificação?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Definição de \texttt{SType} e funções de conversão/unificação no nível semântico.
+  \item \textbf{Como foi utilizado:} Base do sistema de tipos usado pelo analisador semântico e pela inferência local.
+  \item \textbf{Evidência:} \texttt{workspace/src/TypeChecker/Types.hs}, \texttt{workspace/src/TypeChecker/Unify.hs}, \texttt{workspace/src/Semantic/Analyzer.hs}.
 \end{itemize}
 
-\subsubsection*{Prompt 2}
-\begin{itemize}
-  \item \textbf{Prompt:} ...
-  \item \textbf{Resultado obtido:} ...
-  \item \textbf{Como foi utilizado:} ...
+\item
+\textbf{Prompt:} Como validar retorno de função com assinatura explícita e inferida?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Regras para retorno obrigatório/compatível e inferência do tipo de retorno quando aplicável.
+  \item \textbf{Como foi utilizado:} Checagem de \texttt{return} durante a análise de funções/blocos.
+  \item \textbf{Evidência:} \texttt{workspace/src/Semantic/Analyzer.hs}, \texttt{workspace/test/TestSemantic.hs}.
 \end{itemize}
+
+\item
+\textbf{Prompt:} Como tratar inferência de tipo em \texttt{let} com/sem anotação?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Estratégia para combinar declaração/anotação com expressão inicializadora (ou falhar se não houver base).
+  \item \textbf{Como foi utilizado:} Implementação da verificação/inferência de variáveis locais e globais.
+  \item \textbf{Evidência:} \texttt{workspace/src/Semantic/Analyzer.hs}, \texttt{workspace/src/TypeChecker/Infer.hs}, \texttt{workspace/test/TestSemantic.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como validar chamadas de função (aridade e compatibilidade de tipos)?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Checagem de aridade + unificação do tipo de cada argumento com o parâmetro correspondente.
+  \item \textbf{Como foi utilizado:} Validação de chamadas e inferência do tipo de retorno da chamada.
+  \item \textbf{Evidência:} \texttt{workspace/src/Semantic/Analyzer.hs}, \texttt{workspace/src/Environment/FuncEnv.hs}, \texttt{workspace/test/TestSemantic.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como impedir condições não booleanas em \texttt{if/while/for}?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Regra exigindo \texttt{bool} para condicionais.
+  \item \textbf{Como foi utilizado:} Checagens semânticas de condições em comandos de controle de fluxo.
+  \item \textbf{Evidência:} \texttt{workspace/src/Semantic/Analyzer.hs}, \texttt{workspace/test/TestSemantic.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como validar indexação de arrays com índice inteiro e alvo indexável?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Verificação de alvo ser array e índice ser inteiro.
+  \item \textbf{Como foi utilizado:} Checagem de \texttt{LIndex} e expressões de acesso indexado.
+  \item \textbf{Evidência:} \texttt{workspace/src/Semantic/Analyzer.hs}, \texttt{workspace/test/TestSemantic.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como organizar o analisador semântico em fases de coleta e checagem?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Pipeline por etapas (coletar structs/funções, checar globais, checar corpos).
+  \item \textbf{Como foi utilizado:} Estrutura principal da análise semântica do programa.
+  \item \textbf{Evidência:} \texttt{workspace/src/Semantic/Analyzer.hs}, \texttt{workspace/src/Environment/FuncEnv.hs}, \texttt{workspace/src/Environment/StructEnv.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como tratar recursão de função tanto na semântica quanto no runtime?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Inserir assinaturas no ambiente antes de checar corpos; permitir chamadas recursivas no interpretador.
+  \item \textbf{Como foi utilizado:} Suporte a recursão (checagem + execução).
+  \item \textbf{Evidência:} \texttt{workspace/src/Semantic/Analyzer.hs}, \texttt{workspace/src/Interpreter/Eval.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como gerenciar escopo no \texttt{for} com possível declaração no init?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} \texttt{for} abre escopo próprio e trata declaração no init quando existir.
+  \item \textbf{Como foi utilizado:} Regras de escopo/ambiente na semântica e execução do \texttt{for}.
+  \item \textbf{Evidência:} \texttt{workspace/src/Semantic/Analyzer.hs}, \texttt{workspace/src/Interpreter/Eval.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como validar inicialização de struct por aridade de campos?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Checar quantidade e tipos dos campos na inicialização.
+  \item \textbf{Como foi utilizado:} Validação de \texttt{EStructInit} (semântica) e suporte na execução.
+  \item \textbf{Evidência:} \texttt{workspace/src/Semantic/Analyzer.hs}, \texttt{workspace/src/Interpreter/Eval.hs}.
+\end{itemize}
+
+% -------------------------
+\item
+\textbf{Prompt:} Como modelar o runtime com escopos e propagação de erro de forma funcional?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Uso de monads para estado + erro (pilha de escopos, callstack e saída).
+  \item \textbf{Como foi utilizado:} Arquitetura do interpretador e mecanismo de erro de runtime.
+  \item \textbf{Evidência:} \texttt{workspace/src/Interpreter/Eval.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como executar blocos com retorno antecipado?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Encerrar execução do bloco ao encontrar \texttt{return}.
+  \item \textbf{Como foi utilizado:} Implementação do fluxo de retorno no interpretador.
+  \item \textbf{Evidência:} \texttt{workspace/src/Interpreter/Eval.hs}, \texttt{workspace/test/TestInterpreter.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como tratar builtins e diferenciar de funções de usuário?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Caminho dedicado para \texttt{print} (builtin) separado de funções declaradas.
+  \item \textbf{Como foi utilizado:} Execução de \texttt{print} e chamadas no interpretador.
+  \item \textbf{Evidência:} \texttt{workspace/src/Interpreter/Builtins.hs}, \texttt{workspace/src/Interpreter/Eval.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como inicializar variáveis tipadas sem expressão inicial?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Valores default por tipo.
+  \item \textbf{Como foi utilizado:} Declarações sem init no runtime.
+  \item \textbf{Evidência:} \texttt{workspace/src/Interpreter/Eval.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como resolver caminhos de acesso em lvalues compostos (campo/índice aninhado)?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Decomposição do acesso e get/set profundo.
+  \item \textbf{Como foi utilizado:} Leitura/escrita correta em \texttt{a.b[i].c} no runtime.
+  \item \textbf{Evidência:} \texttt{workspace/src/Interpreter/Eval.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como garantir segurança no acesso a arrays no interpretador?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Bounds check antes de acessar/atualizar elementos.
+  \item \textbf{Como foi utilizado:} Erro de runtime esperado em caso fora do limite.
+  \item \textbf{Evidência:} \texttt{workspace/src/Interpreter/Eval.hs}, \texttt{workspace/test/TestLimitations.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como tratar operações numéricas com \texttt{int} e \texttt{float} no interpretador?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Operações cobrindo combinações e coerção numérica.
+  \item \textbf{Como foi utilizado:} Execução correta de expressões numéricas no interpretador.
+  \item \textbf{Evidência:} \texttt{workspace/src/Interpreter/Eval.hs}, \texttt{workspace/test/TestInterpreter.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como validar igualdade e operadores relacionais para tipos não numéricos?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Regras para igualdade (bool/string) e rejeição de operadores inválidos.
+  \item \textbf{Como foi utilizado:} Comportamento consistente entre semântica e runtime.
+  \item \textbf{Evidência:} \texttt{workspace/src/Interpreter/Eval.hs}, \texttt{workspace/src/Semantic/Analyzer.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como enriquecer erro de runtime com contexto de chamada e statement atual?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Mensagem de erro com callstack e contexto.
+  \item \textbf{Como foi utilizado:} Diagnóstico melhor em falhas de runtime.
+  \item \textbf{Evidência:} \texttt{workspace/src/Interpreter/Eval.hs}.
+\end{itemize}
+
+% -------------------------
+\item
+\textbf{Prompt:} Como anexar posição (linha/coluna) a diagnósticos semânticos quando ausente?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Inferência/anexação de posição na camada de CLI.
+  \item \textbf{Como foi utilizado:} Mensagens de erro semântico com linha/coluna.
+  \item \textbf{Evidência:} \texttt{workspace/app/Main.hs}, \texttt{workspace/src/Errors/Diagnostic.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como anexar posição em erros de runtime para mensagens relevantes?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Anexação de posição a erros de execução quando possível.
+  \item \textbf{Como foi utilizado:} Melhor diagnóstico no modo \texttt{--interp}.
+  \item \textbf{Evidência:} \texttt{workspace/app/Main.hs}, \texttt{workspace/src/Interpreter/Eval.hs}.
+\end{itemize}
+
+% -------------------------
+\item
+\textbf{Prompt:} Como garantir regressão mínima por fase com suíte única?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Agregador de testes que roda semântica, interpretador e limitações.
+  \item \textbf{Como foi utilizado:} Execução automatizada e consistente da suíte.
+  \item \textbf{Evidência:} \texttt{workspace/test/Main.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como validar falhas esperadas sem tratar como bug?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Testes que validam limitações e erros esperados.
+  \item \textbf{Como foi utilizado:} Diferenciar limitação conhecida de regressão real.
+  \item \textbf{Evidência:} \texttt{workspace/test/TestLimitations.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como ampliar cobertura de semântica para erros comuns?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Casos de teste para condição não booleana, índice não inteiro, retorno incompatível etc.
+  \item \textbf{Como foi utilizado:} Cobertura de testes para erros frequentes.
+  \item \textbf{Evidência:} \texttt{workspace/test/TestSemantic.hs}.
+\end{itemize}
+
+\item
+\textbf{Prompt:} Como rastrear/organizar inferência local de tipos dentro da etapa semântica?
+\begin{itemize}[leftmargin=1.8em]
+  \item \textbf{Resultado obtido:} Inferência local por restrições + unificação integrada ao analisador.
+  \item \textbf{Como foi utilizado:} Tipagem de \texttt{let} e chamadas com unificação, sem depender de backend.
+  \item \textbf{Evidência:} \texttt{workspace/src/TypeChecker/Infer.hs}, \texttt{workspace/src/TypeChecker/Unify.hs}, \texttt{workspace/src/Semantic/Analyzer.hs}.
+\end{itemize}
+
+\end{enumerate}
 
 \subsection{Divisão de tarefas entre os membros}
-Esta seção não se aplica, pois o trabalho foi realizado individualmente.
+Esta seção não se aplica, pois o trabalho foi realizado individualmente. (João)
+
+\end{document}
